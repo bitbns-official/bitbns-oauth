@@ -1,155 +1,127 @@
-Install
-===
+# PKCE Flow
+The PKCE extension prevents an attack where the authorization code is intercepted and exchanged for an access token by a malicious client, by providing the authorization server with a way to verify the same client instance that exchanges the authorization code is the same one that initiated the flow.
 
-```bash
-git clone https://github.com/bitbns-official/bitbns-oauth.git
-npm install
+## Step 1. Redirect users to request Bitbns access and set authorization parameters.
+
+`
+GET https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&state=CSRF_TOKEN&scope=SCOPES&code_challenge=YOUR_CODE_CHALLENGE&code_challenge_method=S256
+`
+
+When redirecting a user to Bitbns to authorize access to your application, your first step is to create the authorization request. You need create and store a new PKCE code_verifier, also will be used in STEP4 Here is an Example of javascript generate code_verifier:
+```javascript
+// Generate a secure random string using the browser crypto functions
+function generateRandomString() {
+  var array = new Uint32Array(28);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join(
+    ""
+  );
+}
 ```
 
-Usage
-===
+| Paramter | Description |
+| --- | --- |
+| response_type | <b>Required Value</b> `code` |
+| client_id | <b>Required</b> The client ID of your application. |
+| redirect_uri | <b>Required</b> The URL in your web application where users will be redirected after authorization. This value needs to be URL encoded.|
+|state|<b>Required</b> The CSRF token to protect against CSRF (cross-site request forgery) attacks.|
+|scope|<b>Required</b> List of scopes your application requests access to, with space  seperated|
+|code_challenge|<b>Required</b> Hash and base64-urlencode of code_verifier|
+|code_challenge_method|<b>Required</b> Method used to encrpyt should be `S256`|
 
-## Locally
+Here is an example of javascript generate code_challenge
+```javascript
+// Calculate the SHA256 hash of the input text.
+function sha256(code_verifier) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(code_verifier);
+  return window.crypto.subtle.digest("SHA-256", data);
+}
 
-```bash
-node server.js
+// Base64-urlencodes the input string
+function base64urlencode(hashed) {
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(hashed)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+// Return the base64-urlencoded sha256 hash for the PKCE challenge
+async function generateCodeChallenge(code_verifier) {
+  hashed = await sha256(code_verifier);
+  return base64urlencode(hashed);
+}
 ```
 
-Steps involved
-===
+Here is an Example of an authorization URL:
 
-- Serialize and deserialize user for passport
+`GET https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=name%20email&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=a28f296f2cbe6c64b4d5jul24735d39c3c6dddcf`
+
+## Step 2. Bitbns prompts user for consent
+
+In this step, the user decides whether to grant your application the requested access. At this stage, Bitbns displays a consent window that shows the name of your application and the Bitbns API services that it is requesting permission to access with the user's authorization credentials. The user can then consent or refuse to grant access to your application.
+
+Your application doesn't need to do anything at this stage as it waits for Bitbns's OAuth 2.0 server to redirect back.
+
+## Step 3. Bitbns redirects back to your application
+
+If the user approves your application, Bitbns's OAuth server will redirect back to your redirect_uri with a temporary authorization code parameter.
+
+The state parameter will be included as well. If you generate a random string or encode the hash of a cookie or another value that captures the client's state, you can validate the response to additionally ensure that the request and response originated in the same browser, providing protection against attacks such as cross-site request forgery.
+
+Example of the redirection:
+
+`GET https://domain.com/oauth/callback?code=cf6941ae8918b6a008f1377f36a4557ab5935b36&state=377f36a4557ab5935b36`
+
+><b>state</b> is the same as the one in step 1
+
+## Step 4. Exchange authorization code for refresh and access tokens
+After your application receives the authorization code, it can exchange the authorization code for an access token, which can be done by make a POST call:
+
+`POST https://oauth.bitbns.com/oauth/token?client_id=YOUR_CLIENT_ID&code_verifier=STEP1_CODE_VERIFIER&grant_type=authorization_code&code=STEP3_CODE&redirect_uri=YOUR_REDIRECT_URI
+`
+
+|Parameter|Description|
+|--|--|
+|grant_type| **Required** Value `authorization_code`|
+|code| **Required** Step3 return code|
+|client_id| **Required** The client ID of your application.|
+|code_verifier|	**Required** The random secret code created and stored in STEP1|
+|redirect_uri|	**Required** The URL in your web application where users will be redirected after authorization. This value needs to be URL encoded.|
+
+Example POST call:
+
+`
+curl https://oauth.bitbns.com/oauth/token -X POST -d 'client_id=client123ardxg4743uijvrhu7&code_verifier=65a4ecce1fe857067bec7a6887529531831ebe38e32da95fe0f322a2&grant_type=authorization_code&code=95OfIm&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback'
+`
+
+After a successful request, a valid access_token will be returned in the response.
+
+Here is an example response:
 
 ```javascript
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
+{
+   "refreshToken":{
+      "token":"sFDMZM9KJIu4kzGRS4HaxNB3GZFJ4e5HdE8tSxOPORNZZleytNefpYj8NHsZLF7V6LX9ItWNQOwi3UJs9zhvOdy146kxFo40SmuK9DlorUaZcOjbZOYmX2Hd14h3Hxyv1M39dz7GyEOPnxDq5mnGbMFrGRQALQF00qFAMu6SNzEU9Hn0T7Pw6w1Vx64rYXokdFz99okCkXUdJZzEjJ759YUNw7RlfeltsRG8C1dRAs7JcS5HKg0EuIdxiPXpOioX",
+      "expiresAt":1622056620946
+   },
+   "accessToken":{
+      "token":"ZsMLsdEkHZ3Shdvw7CHwL0MuMfHjZX66VLYSVcyd0PZNdubG3lLAwtjjcb0usFWiPohSihL9XYU3oFqba4m67LNZFW21d91iwG9JrSgWfRaoPq304MLbpnADpwBo3ARB0uOyjdhGsb4PpCMFpCCR0IY5mAUFHCmZJpylXI6QKySm5H3uxejfXrZFTpqfsxxJWWtBhsq8E06f22lE04VVSAWLDZVPx908yr8W6PxO4vcZzpiNh1CPq2VCEtXH1pgQ",
+      "expiresAt":1622050220946
+   },
+   "scope":"name email"
+}
+````
 
-passport.deserializeUser(function(obj, done) {
-  var user = obj;
-  done(null, user);
-});
-```
+## Step 5. Calling Bitbns APIs
 
-- Use passport-oauth2 strategy and list the parameters given below 
+After you have a valid access_token, you can make your first API call:
 
+`curl -XGET -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' 'https://oauth.bitbns.com/oauth/api?scope=name&param1=something&param2=something2'`
+
+Response:
 ```javascript
-passport.use(new OAuth2Strategy({
-    tokenURL: providerConfig.protocol + '://' + providerConfig.host + '/oauth/token'
-  , authorizationURL: providerConfig.protocol + '://' + providerConfig.host+ '/oauth/dialog/authorize'
-  , clientID: opts.clientId
-  , clientSecret: opts.clientSecret
-  , callbackURL: consumerConfig.protocol + "://" + consumerConfig.host + "/auth/example-oauth2orize/callback"
-  , pkce: true
-  , state: true
-  , proxy: true
-  }
-, function (accessToken, refreshToken, profile, done) {
-    User.findOrCreate({ profile: profile, refreshToken, accessToken }, function (err, user) {
-      return done(err, user);
-    }); // do whatever you want to do with the data
-  }
-));
+{
+	data:"Order placed successfully"
+}
 ```
-
-APIs
-===
-- Following routes have been used for client side implementation:
-  - '/auth/example-oauth2orize' - After passport is setup, this api is called for preparing the request and passing scopes along with it
-  ```javascript
-  router.get('/auth/example-oauth2orize', passport.authenticate('oauth2', { scope: ['name','email'] }));
-  ```
-
-  - '/auth/example-oauth2orize/callback' - for receiving the callback containing code and state
-  ```javascript
-  router.get('/auth/example-oauth2orize/callback', passport.authenticate('oauth2', { failureRedirect: '/close.html?error=foo' }));
-  
-  router.get('/auth/example-oauth2orize/callback', function (req, res) {
-    res.send(req.session.passport);
-  });
-  ```
-
-- Upon receiving the access token, following apis can be used to access data of the user iff their scope was requested. These are protected resources that require a token generated from the client's id and secret.
-
-
-    - '/externalapi/refresh' - To generate a new accessToken along with a new refreshToken
-  
-  ```javascript   
-  router.get('/externalapi/refresh', function (req, res, next) {
-    var details = {
-      refreshToken:req.user.refreshToken.token
-    };
-    fetch(providerConfig.protocol + '://' + providerConfig.host + '/oauth/refresh', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(details)
-    })
-    .then(resp=>resp.json())
-    .then(data=>{
-      req.user.refreshToken = data.params.refresh_token;
-      req.user.accessToken = data.params.access_token;
-      res.send(data)
-    })
-  });
-  ```
-
-  - '/externalapi/email' - To invoke function along with parameters
-
-  ```javascript
-  router.get('/externalapi/email', function (req, res, next) {
-    let options = {
-      headers: {
-        'Authorization': 'Bearer ' + req.user.accessToken.token
-      }
-    };
-    let url = providerConfig.protocol + '://' + providerConfig.host + '/oauth/api'+"?scope=function3&param1=something1&params2=something2";
-    fetch(url,options)
-    .then(resp=>resp.json())
-    .then(data=>{
-      res.send(data);
-    }) 
-  });
-  ```
-
-  - '/externalapi/name' - To invoke function along with parameters
-
-  ```javascript
-  router.get('/externalapi/name', function (req, res, next) {
-    let options = {
-      headers: {
-        'Authorization': 'Bearer ' + req.user.accessToken.token
-      },
-    };
-    let url = providerConfig.protocol + '://' + providerConfig.host + '/oauth/api'+"?scope=function1&param1=something1&params2=something2";
-    fetch(url,options)
-    .then(resp=>resp.json())
-    .then(data=>{
-      res.send(data);
-    }) 
-  });
-  ```
-
-  - '/externalapi/username' - To invoke function along with parameters
-
-  ```javascript
-  router.get('/externalapi/username', function (req, res, next) {
-    let url = providerConfig.protocol + '://' + providerConfig.host + '/oauth/api'+"?scope=function2&param1=something1&params2=something2";
-    let options = {
-      headers: {
-        'Authorization': 'Bearer ' + req.user.accessToken.token
-      }
-    };
-
-    fetch(url,options)
-    .then(resp=>resp.json())
-    .then(data=>{
-      res.send(data);
-    }) 
-  });
-  ```
-
-Refer server.js for the complete implementation.
-
-Credits - https://github.com/coolaj86/example-oauth2orize-consumer
