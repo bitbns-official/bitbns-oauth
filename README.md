@@ -55,7 +55,7 @@ passport.use(new OAuth2Strategy({
 APIs
 ===
 - Following routes have been used for client side implementation:
-  - '/auth/example-oauth2orize' - for preparing the request and passing scopes along with it
+  - '/auth/example-oauth2orize' - After passport is setup, this api is called for preparing the request and passing scopes along with it
   ```javascript
   router.get('/auth/example-oauth2orize', passport.authenticate('oauth2', { scope: ['name','email'] }));
   ```
