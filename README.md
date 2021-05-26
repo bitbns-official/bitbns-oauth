@@ -1,3 +1,5 @@
+The code provided above is an implementation of the PKCE Flow stated below.
+
 # PKCE Flow
 The PKCE extension prevents an attack where the authorization code is intercepted and exchanged for an access token by a malicious client, by providing the authorization server with a way to verify the same client instance that exchanges the authorization code is the same one that initiated the flow.
 
