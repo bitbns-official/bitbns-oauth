@@ -1,5 +1,7 @@
 The code provided above is an implementation of the PKCE Flow stated below.
-Before proceeding further, visit the bitbnsawebsite and generate clientId and clientSecret.
+
+
+Before proceeding further, visit the bitbns website and generate clientId and clientSecret.
 
 # PKCE Flow
 The PKCE extension prevents an attack where the authorization code is intercepted and exchanged for an access token by a malicious client, by providing the authorization server with a way to verify the same client instance that exchanges the authorization code is the same one that initiated the flow.
@@ -58,7 +60,9 @@ async function generateCodeChallenge(code_verifier) {
 
 Here is an Example of an authorization URL:
 
-`GET https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=name%20email&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=a28f296f2cbe6c64b4d5jul24735d39c3c6dddcf`
+`GET https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=name%20email&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=client1`
+
+`curl --request GET 'https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=name%20email&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=client1'`
 
 ## Step 2. Bitbns prompts user for consent
 
@@ -76,13 +80,14 @@ Example of the redirection:
 
 `GET https://domain.com/oauth/callback?code=cf6941ae8918b6a008f1377f36a4557ab5935b36&state=377f36a4557ab5935b36`
 
-><b>state</b> is the same as the one in step 1
+> <b>state</b> is the same as the one in step 1
 
 ## Step 4. Exchange authorization code for refresh and access tokens
 After your application receives the authorization code, it can exchange the authorization code for an access token, which can be done by make a POST call:
 
 `POST https://oauth.bitbns.com/oauth/token?client_id=YOUR_CLIENT_ID&code_verifier=STEP1_CODE_VERIFIER&grant_type=authorization_code&code=STEP3_CODE&redirect_uri=YOUR_REDIRECT_URI
 `
+
 
 |Parameter|Description|
 |--|--|
@@ -94,8 +99,24 @@ After your application receives the authorization code, it can exchange the auth
 
 Example POST call:
 
+To set authorization header:
+
+Encode `clientId:clientSecret` using base64urlencode.
+
+Example `client1:secret1` becomes `Y2xpZW50MTpzZWNyZXQx`
+
 `
-curl https://oauth.bitbns.com/oauth/token -X POST -d 'client_id=client123ardxg4743uijvrhu7&code_verifier=65a4ecce1fe857067bec7a6887529531831ebe38e32da95fe0f322a2&grant_type=authorization_code&code=95OfIm&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback'
+curl --request POST 'https://oauth.bitbns.com/oauth/token' \
+--header 'Authorization: Basic Y2xpZW50MTpzZWNyZXQx' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "grant_type": "authorization_code",
+    "redirect_uri": "https://domain.com/oauth/callback",
+    "code_verifier": "65a4ecce1fe857067bec7a6887529531831ebe38e32da95fe0f322a2",
+    "client_id": "client1",
+    "code":"cf6941ae8918b6a008f1377f36a4557ab5935b36"
+}
+'
 `
 
 After a successful request, a valid access_token will be returned in the response.
@@ -112,7 +133,8 @@ Here is an example response:
       "token":"ZsMLsdEkHZ3Shdvw7CHwL0MuMfHjZX66VLYSVcyd0PZNdubG3lLAwtjjcb0usFWiPohSihL9XYU3oFqba4m67LNZFW21d91iwG9JrSgWfRaoPq304MLbpnADpwBo3ARB0uOyjdhGsb4PpCMFpCCR0IY5mAUFHCmZJpylXI6QKySm5H3uxejfXrZFTpqfsxxJWWtBhsq8E06f22lE04VVSAWLDZVPx908yr8W6PxO4vcZzpiNh1CPq2VCEtXH1pgQ",
       "expiresAt":1622050220946
    },
-   "scope":"name email"
+   "scope":"name email",
+   "token_type": "Bearer"
 }
 ````
 
@@ -128,3 +150,11 @@ Response:
 	data:"Order placed successfully"
 }
 ```
+
+------
+
+## Tokens
+
+- `Access Token` is used to allow an application to access an API.
+- `Refresh Token` is used to generate a new `Access Token` when the previous one has expired.
+	- When generating a new `Access Token` using `Refresh Token`, a new `Refresh Token` is also returned back and the previous one is discarded.
