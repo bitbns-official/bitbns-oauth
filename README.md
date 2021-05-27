@@ -151,10 +151,10 @@ Response:
 }
 ```
 
-------
-
 ## Tokens
 
 - `Access Token` is used to allow an application to access an API.
 - `Refresh Token` is used to generate a new `Access Token` when the previous one has expired.
 	- When generating a new `Access Token` using `Refresh Token`, a new `Refresh Token` is also returned back and the previous one is discarded.
+
+------
