@@ -119,7 +119,7 @@ Here is an example response:
 
 After you have a valid access_token, you can make your first API call:
 
-`curl -XGET -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' 'https://oauth.bitbns.com/oauth/api?scope=name&param1=something&param2=something2'`
+`curl -XGET -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' 'https://oauth.bitbns.com/oauth/api?function=functionName&param1=something&param2=something2'`
 
 Response:
 ```javascript
