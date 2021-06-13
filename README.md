@@ -151,6 +151,57 @@ Response:
 }
 ```
 
+
+## Step 6. Keep updating your refresh token and access token 
+After your application receives the refresh token, it can be exchanged for a new pair of refresh and access token pair time to time, which can be done by make a POST call:
+
+`POST https://oauth.bitbns.com/oauth/refresh?refreshToken=YOUR_OLD_REFRESH_TOKEN
+`
+
+
+|Parameter|Description|
+|--|--|
+
+|refresh_token| **Required** Refresh code obtained in Step 4|
+
+Example POST call:
+
+To set authorization header:
+
+Encode `clientId:clientSecret` using base64urlencode.
+
+Example `client1:secret1` becomes `Y2xpZW50MTpzZWNyZXQx`
+
+`
+curl --request POST 'https://oauth.bitbns.com/oauth/refresh' \
+--header 'Authorization: Basic Y2xpZW50MTpzZWNyZXQx' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "refreshToken":"cf6941ae8918b6a008f1377f36a4557ab5935b36"
+}
+'
+`
+
+After a successful request, a valid access_token and refresh token will be returned in the response.
+
+Here is an example response:
+
+```javascript
+{
+   "refreshToken":{
+      "token":"sFDMZM9KJIu4kzGRS4HaxNB3GZFJ4e5HdE8tSxOPORNZZleytNefpYj8NHsZLF7V6LX9ItWNQOwi3UJs9zhvOdy146kxFo40SmuK9DlorUaZcOjbZOYmX2Hd14h3Hxyv1M39dz7GyEOPnxDq5mnGbMFrGRQALQF00qFAMu6SNzEU9Hn0T7Pw6w1Vx64rYXokdFz99okCkXUdJZzEjJ759YUNw7RlfeltsRG8C1dRAs7JcS5HKg0EuIdxiPXpOioX",
+      "expiresAt":1622056620946
+   },
+   "accessToken":{
+      "token":"ZsMLsdEkHZ3Shdvw7CHwL0MuMfHjZX66VLYSVcyd0PZNdubG3lLAwtjjcb0usFWiPohSihL9XYU3oFqba4m67LNZFW21d91iwG9JrSgWfRaoPq304MLbpnADpwBo3ARB0uOyjdhGsb4PpCMFpCCR0IY5mAUFHCmZJpylXI6QKySm5H3uxejfXrZFTpqfsxxJWWtBhsq8E06f22lE04VVSAWLDZVPx908yr8W6PxO4vcZzpiNh1CPq2VCEtXH1pgQ",
+      "expiresAt":1622050220946
+   },
+   "scope":"name email",
+   "token_type": "Bearer"
+}
+````
+
+
 ## Tokens
 
 - `Access Token` is used to allow an application to access an API.
