@@ -205,7 +205,10 @@ Here is an example response:
 ## Tokens
 
 - `Access Token` is used to allow an application to access an API.
+- `Access Token` remains valid for an hour.
 - `Refresh Token` is used to generate a new `Access Token` when the previous one has expired.
 	- When generating a new `Access Token` using `Refresh Token`, a new `Refresh Token` is also returned back and the previous one is discarded.
+- `Refresh Token` remains valid for 30 days.
+- If both access token and refresh token gets expired, user will have to reauthorise the flow.
 
 ------
