@@ -150,7 +150,7 @@ Response:
 	data:"Order placed successfully"
 }
 ```
-Here is the POSTMAN collection link for all supported APIS. - https://www.getpostman.com/collections/453affa9f82909eef59c
+Here is the POSTMAN collection link for all supported APIS. - https://documenter.getpostman.com/view/141690/TzeUmTaY
 
 ## Step 6. Keep updating your refresh token and access token 
 After your application receives the refresh token, it can be exchanged for a new pair of refresh and access token pair time to time, which can be done by make a POST call:
