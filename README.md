@@ -30,7 +30,7 @@ function generateRandomString() {
 | client_id | <b>Required</b> The client ID of your application. |
 | redirect_uri | <b>Required</b> The URL in your web application where users will be redirected after authorization. This value needs to be URL encoded.|
 |state|<b>Required</b> The CSRF token to protect against CSRF (cross-site request forgery) attacks.|
-|scope|<b>Required</b> List of scopes your application requests access to, with space  seperated|
+|scope|<b>Required</b> List of scopes your application requests access to, with space  seperated (in capital letters)|
 |code_challenge|<b>Required</b> Hash and base64-urlencode of code_verifier|
 |code_challenge_method|<b>Required</b> Method used to encrpyt should be `S256`|
 
@@ -60,9 +60,9 @@ async function generateCodeChallenge(code_verifier) {
 
 Here is an Example of an authorization URL:
 
-`GET https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=name%20email&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=client1`
+`GET https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=TRADE%20CANCEL&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=client1`
 
-`curl --request GET 'https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=name%20email&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=client1'`
+`curl --request GET 'https://oauth.bitbns.com/oauth/dialog/authorize?response_type=code&redirect_uri=https%3A%2F%2Fdomain.com%2Foauth%2Fcallback&scope=TRADE%20CANCEL&code_challenge=ARU184muFVaDi3LObH5YTZSxqA5ZdYPLspCl7wFwV0U&code_challenge_method=S256&state=377f36a4557ab5935b36&client_id=client1'`
 
 ## Step 2. Bitbns prompts user for consent
 
