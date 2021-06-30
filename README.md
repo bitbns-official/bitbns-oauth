@@ -85,8 +85,7 @@ Example of the redirection:
 ## Step 4. Exchange authorization code for refresh and access tokens
 After your application receives the authorization code, it can exchange the authorization code for an access token, which can be done by make a POST call:
 
-`POST https://oauth.bitbns.com/oauth/token?client_id=YOUR_CLIENT_ID&code_verifier=STEP1_CODE_VERIFIER&grant_type=authorization_code&code=STEP3_CODE&redirect_uri=YOUR_REDIRECT_URI
-`
+`POST https://oauth.bitbns.com/oauth/token`
 
 
 |Parameter|Description|
@@ -95,7 +94,6 @@ After your application receives the authorization code, it can exchange the auth
 |code| **Required** Step3 return code|
 |client_id| **Required** The client ID of your application.|
 |code_verifier|	**Required** The random secret code created and stored in STEP1|
-|redirect_uri|	**Required** The URL in your web application where users will be redirected after authorization. This value needs to be URL encoded.|
 
 Example POST call:
 
@@ -111,7 +109,6 @@ curl --request POST 'https://oauth.bitbns.com/oauth/token' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "grant_type": "authorization_code",
-    "redirect_uri": "https://domain.com/oauth/callback",
     "code_verifier": "65a4ecce1fe857067bec7a6887529531831ebe38e32da95fe0f322a2",
     "client_id": "client1",
     "code":"cf6941ae8918b6a008f1377f36a4557ab5935b36"
@@ -142,7 +139,7 @@ Here is an example response:
 
 After you have a valid access_token, you can make your first API call:
 
-`curl -XPOST -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' 'https://oauth.bitbns.com/oauth/api?function=functionName&param1=something&param2=something2'`
+`curl --request GET -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' 'https://oauth.bitbns.com/oauth/api?function=functionName&param1=something&param2=something2'`
 
 Response:
 ```javascript
@@ -155,8 +152,7 @@ Here is the POSTMAN collection link for all supported APIS. - https://documenter
 ## Step 6. Keep updating your refresh token and access token 
 After your application receives the refresh token, it can be exchanged for a new pair of refresh and access token pair time to time, which can be done by make a POST call:
 
-`POST https://oauth.bitbns.com/oauth/refresh?refreshToken=YOUR_OLD_REFRESH_TOKEN
-`
+`POST https://oauth.bitbns.com/oauth/refresh`
 
 
 |Parameter|Description|
