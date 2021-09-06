@@ -157,7 +157,7 @@ After your application receives the refresh token, it can be exchanged for a new
 
 |Parameter|Description|
 |--|--|
-|refresh_token| **Required** Refresh code obtained in Step 4|
+|refreshToken| **Required** Refresh code obtained in Step 4|
 
 Example POST call:
 
